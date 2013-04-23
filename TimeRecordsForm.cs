@@ -8,14 +8,28 @@ namespace TimeTrack
 {
     public partial class TimeRecordsForm : Form
     {
-        private DateTime CurrentDate = DateTime.Now;
+        private DateTime _currentDate = DateTime.Now;
+        private DateTime CurrentDate
+        {
+            get { return _currentDate; }
+            set
+            {
+                if (value == _currentDate)
+                    return;
+                _scrollPosition = 0;
+                vScrollBar1.Value = 0;
+                _currentDate = value;
+            }
+        }
+
+        private int _scrollPosition = 0;
 
         public TimeRecordsForm()
         {
             InitializeComponent();
         }
 
-        private void TimeRecordsForm_Shown(object sender, System.EventArgs e)
+        private void TimeRecordsForm_Shown(object sender, EventArgs e)
         {
             var data = Program.TimeRecords.OrderByDescending(r => r.When).Select(r => new
                 {
@@ -39,9 +53,72 @@ namespace TimeTrack
 
         private void DrawDay()
         {
-            var row = Array.FindIndex(Program.TimeRecords.OrderByDescending(r => r.When).ToArray(), r => r.When.Date == CurrentDate.Date);
-            if (row >= 0)
-                dataGridView1.CurrentCell = dataGridView1.Rows[row].Cells[0];
+            UpdateGrid();
+            UpdateDayControls();
+
+            var todayRecords = Program.TimeRecords.Where(r => r.When.Date == CurrentDate.Date).OrderBy(r => r.When).ToList();
+            var vScrollMax = (2 * RowPadding) + (todayRecords.Count() * YStep);
+            vScrollBar1.Enabled = vScrollMax > pnlPoints.Height;
+            if (vScrollBar1.Enabled)
+            {
+                vScrollBar1.Maximum = vScrollMax;
+                vScrollBar1.LargeChange = pnlPoints.Height;
+            }
+
+            if (!todayRecords.Any()) return;
+            var minTicks = (double)todayRecords.First().When.Ticks;
+            var maxTicks = (double)todayRecords.Last().When.Ticks;
+            var maxX = pnlPoints.Width - vScrollBar1.Width - Radius - RowPadding;
+            var y = RowPadding + Radius - _scrollPosition;
+
+            using (var bg = BufferedGraphicsManager.Current.Allocate(pnlPoints.CreateGraphics(), pnlPoints.DisplayRectangle))
+            {
+                var g = bg.Graphics;
+                g.Clear(SystemColors.Control);
+                foreach (var r in todayRecords)
+                {
+                    var aboveViewport = y < 0 - RowPadding - Radius;
+                    var belowViewport = y > pnlPoints.Height + Radius + RowPadding;
+                    if (!aboveViewport && !belowViewport)
+                    {
+                        DrawRecord(r, g, minTicks, maxTicks, maxX, y);
+                    }
+                    y += YStep;
+                }
+                bg.Render();
+            }
+        }
+
+        private const int RowPadding = 10;
+        private const int Radius = 10;
+        private const int MinX = RowPadding + Radius;
+        private const int YStep = RowPadding + (2 * Radius);
+        private static readonly Brush CircleBrush = Brushes.DarkBlue;
+        private static readonly Font TextFont = new Font("Arial", 8.0F);
+        private static readonly Brush Brush = Brushes.Black;
+
+        private static void DrawRecord(TimeRecord r, Graphics g, double minTicks, double maxTicks, int maxX, int y)
+        {
+            var what = string.Format("{0}: {1}", r.When.ToString("HH:mm:ss"), r.What);
+            // need to calculate a point between minX and maxX according to the Ticks value between minTicks and maxTicks
+            // eg. if ticks are 10...100 and x is 1...5, a point "50" on the tick scale is at 3.222
+            // this is calculated by working out where the tick is from a zero origin (ie. 40/90) along the 1...5 scale.
+            // formula: ((40/90)*4)+1
+            // or: ((T-minT)/(maxT-minT))*(maxX-minX) + minX
+            var x = (int) Math.Round((((r.When.Ticks - minTicks)/(maxTicks - minTicks))*(maxX - MinX)) + MinX);
+            g.FillEllipse(CircleBrush, x, y, Radius, Radius);
+            // Decide whether to draw the text on the LHS or RHS of the red dot
+            var textSize = TextRenderer.MeasureText(what, TextFont);
+            var lhsTextX = x - Radius - textSize.Width;
+            var rhsTextX = x + Radius;
+            var textIsBetterOnLhs = rhsTextX + textSize.Width > maxX && lhsTextX > MinX;
+            var textX = textIsBetterOnLhs ? lhsTextX : rhsTextX;
+            var textY = y - 2;
+            g.DrawString(what, TextFont, Brush, textX, textY);
+        }
+
+        private void UpdateDayControls()
+        {
             lblCurrentDay.Text = CurrentDate.ToString("dddd MMMM d, yyyy");
             var dateOfCurrentButton = CurrentDate.StartOfWeek();
             foreach (var btn in new[] {btnMonday, btnTuesday, btnWednesday, btnThursday, btnFriday, btnSaturday, btnSunday})
@@ -51,48 +128,14 @@ namespace TimeTrack
                 btn.Enabled = countForDay != 0;
                 dateOfCurrentButton = dateOfCurrentButton.AddDays(1);
             }
-            var g = pnlPoints.CreateGraphics();
-            g.Clear(SystemColors.Control);
+        }
 
-            var todayRecords = Program.TimeRecords.Where(r => r.When.Date == CurrentDate.Date).OrderBy(r => r.When).ToList();
-            const int padding = 10;
-            const int radius = 10;
-            const int minX = padding + radius;
-            var maxX = pnlPoints.Width - vScrollBar1.Width - radius - padding;
-            var y = padding + radius - vScrollBar1.Value;
-            const int yStep = padding + (2*radius);
-            var vScrollMax = (2*padding) + (todayRecords.Count()*yStep) - pnlPoints.Height;
-            vScrollBar1.Enabled = vScrollMax > 0;
-            if (vScrollBar1.Enabled)
-                vScrollBar1.Maximum = vScrollMax;
-
-            if (!todayRecords.Any()) return;
-            var minTicks = (double)todayRecords.First().When.Ticks;
-            var maxTicks = (double)todayRecords.Last().When.Ticks;
-
-            var circleBrush = Brushes.DarkBlue;
-            var font = new Font("Arial", 8.0F);
-            var brush = Brushes.Black;
-            foreach (var r in todayRecords)
-            {
-                var what = string.Format("{0}: {1}", r.When.ToString("HH:mm:ss"), r.What);
-                // need to calculate a point between minX and maxX according to the Ticks value between minTicks and maxTicks
-                // eg. if ticks are 10...100 and x is 1...5, a point "50" on the tick scale is at 3.222
-                // this is calculated by working out where the tick is from a zero origin (ie. 40/90) along the 1...5 scale.
-                // formula: ((40/90)*4)+1
-                // or: ((T-minT)/(maxT-minT))*(maxX-minX) + minX
-                var x = (int)Math.Round((((r.When.Ticks - minTicks)/(maxTicks - minTicks))*(maxX - minX)) + minX);
-                g.FillEllipse(circleBrush, x, y, radius, radius);
-                // Decide whether to draw the text on the LHS or RHS of the red dot
-                var textSize = TextRenderer.MeasureText(what, font);
-                var lhsTextX = x - radius - textSize.Width;
-                var rhsTextX = x + radius;
-                var textIsBetterOnLhs = rhsTextX + textSize.Width > maxX && lhsTextX > minX;
-                var textX = textIsBetterOnLhs ? lhsTextX : rhsTextX;
-                var textY = y - 2;
-                g.DrawString(what, font, brush, textX, textY);
-                y += yStep;
-            }
+        private void UpdateGrid()
+        {
+            var row = Array.FindIndex(Program.TimeRecords.OrderByDescending(r => r.When).ToArray(),
+                                      r => r.When.Date == CurrentDate.Date);
+            if (row >= 0)
+                dataGridView1.CurrentCell = dataGridView1.Rows[row].Cells[0];
         }
 
         private void btnPrevWeek_Click(object sender, EventArgs e)
@@ -151,6 +194,8 @@ namespace TimeTrack
 
         private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
         {
+            if (e.OldValue == e.NewValue) return;
+            _scrollPosition = e.NewValue;
             DrawDay();
         }
 
