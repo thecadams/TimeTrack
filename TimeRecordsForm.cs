@@ -153,6 +153,11 @@ namespace TimeTrack
         {
             DrawDay();
         }
+
+        private void pnlPoints_Resize(object sender, EventArgs e)
+        {
+            DrawDay();
+        }
     }
 
     public static class MyExtensions
