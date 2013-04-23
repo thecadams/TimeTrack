@@ -162,7 +162,7 @@
             this.btnFriday.Name = "btnFriday";
             this.btnFriday.Size = new System.Drawing.Size(65, 60);
             this.btnFriday.TabIndex = 8;
-            this.btnFriday.Tag = "Friday\\n{0}\\n{1}";
+            this.btnFriday.Tag = "Friday\r\n{0}\r\n{1}";
             this.btnFriday.Text = "Friday\r\n5/2/3";
             this.btnFriday.UseVisualStyleBackColor = true;
             this.btnFriday.Click += new System.EventHandler(this.btnFriday_Click);
@@ -175,7 +175,7 @@
             this.btnSunday.Name = "btnSunday";
             this.btnSunday.Size = new System.Drawing.Size(65, 60);
             this.btnSunday.TabIndex = 6;
-            this.btnSunday.Tag = "Sunday\\n{0}\\n{1}";
+            this.btnSunday.Tag = "Sunday\r\n{0}\r\n{1}";
             this.btnSunday.Text = "Sunday\r\n7/2/3";
             this.btnSunday.UseVisualStyleBackColor = true;
             this.btnSunday.Click += new System.EventHandler(this.btnSunday_Click);
@@ -188,7 +188,7 @@
             this.btnSaturday.Name = "btnSaturday";
             this.btnSaturday.Size = new System.Drawing.Size(65, 60);
             this.btnSaturday.TabIndex = 7;
-            this.btnSaturday.Tag = "Saturday\\n{0}\\n{1}";
+            this.btnSaturday.Tag = "Saturday\r\n{0}\r\n{1}";
             this.btnSaturday.Text = "Saturday\r\n6/2/3";
             this.btnSaturday.UseVisualStyleBackColor = true;
             this.btnSaturday.Click += new System.EventHandler(this.btnSaturday_Click);
@@ -201,7 +201,7 @@
             this.btnThursday.Name = "btnThursday";
             this.btnThursday.Size = new System.Drawing.Size(65, 60);
             this.btnThursday.TabIndex = 5;
-            this.btnThursday.Tag = "Thursday\\n{0}\\n{1}";
+            this.btnThursday.Tag = "Thursday\r\n{0}\r\n{1}";
             this.btnThursday.Text = "Thursday\r\n4/2/3";
             this.btnThursday.UseVisualStyleBackColor = true;
             this.btnThursday.Click += new System.EventHandler(this.btnThursday_Click);
@@ -214,7 +214,7 @@
             this.btnWednesday.Name = "btnWednesday";
             this.btnWednesday.Size = new System.Drawing.Size(65, 60);
             this.btnWednesday.TabIndex = 4;
-            this.btnWednesday.Tag = "Wed\\n{0}\\n{1}";
+            this.btnWednesday.Tag = "Wed\r\n{0}\r\n{1}";
             this.btnWednesday.Text = "Wed\r\n3/2/3";
             this.btnWednesday.UseVisualStyleBackColor = true;
             this.btnWednesday.Click += new System.EventHandler(this.btnWednesday_Click);
@@ -227,7 +227,7 @@
             this.btnTuesday.Name = "btnTuesday";
             this.btnTuesday.Size = new System.Drawing.Size(65, 60);
             this.btnTuesday.TabIndex = 3;
-            this.btnTuesday.Tag = "Tuesday\\n{0}\\n{1}";
+            this.btnTuesday.Tag = "Tuesday\r\n{0}\r\n{1}";
             this.btnTuesday.Text = "Tuesday\r\n2/2/3";
             this.btnTuesday.UseVisualStyleBackColor = true;
             this.btnTuesday.Click += new System.EventHandler(this.btnTuesday_Click);
@@ -240,7 +240,7 @@
             this.btnMonday.Name = "btnMonday";
             this.btnMonday.Size = new System.Drawing.Size(65, 60);
             this.btnMonday.TabIndex = 2;
-            this.btnMonday.Tag = "Monday\\n{0}\\n{1}";
+            this.btnMonday.Tag = "Monday\r\n{0}\r\n{1}";
             this.btnMonday.Text = "Monday\r\n1/2/3";
             this.btnMonday.UseVisualStyleBackColor = true;
             this.btnMonday.Click += new System.EventHandler(this.btnMonday_Click);

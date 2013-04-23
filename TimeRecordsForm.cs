@@ -47,7 +47,7 @@ namespace TimeTrack
             foreach (var btn in new[] {btnMonday, btnTuesday, btnWednesday, btnThursday, btnFriday, btnSaturday, btnSunday})
             {
                 var countForDay = Program.TimeRecords.CountForDay(dateOfCurrentButton);
-                btn.Text = string.Format(btn.Tag.ToString().Replace("\\n", Environment.NewLine), dateOfCurrentButton.ToString("dd/MM/yyyy"), countForDay);
+                btn.Text = string.Format(btn.Tag.ToString(), dateOfCurrentButton.ToString("dd/MM/yy"), countForDay);
                 btn.Enabled = countForDay != 0;
                 dateOfCurrentButton = dateOfCurrentButton.AddDays(1);
             }
@@ -55,20 +55,20 @@ namespace TimeTrack
             g.Clear(SystemColors.Control);
 
             var todayRecords = Program.TimeRecords.Where(r => r.When.Date == CurrentDate.Date).OrderBy(r => r.When).ToList();
-            if (!todayRecords.Any())
-            {
-                pnlPoints.VerticalScroll.Value = 0;
-                vScrollBar1.Enabled = false;
-                return;
-            }
-            var minTicks = (double)todayRecords.First().When.Ticks;
-            var maxTicks = (double)todayRecords.Last().When.Ticks;
             const int padding = 10;
             const int radius = 10;
             const int minX = padding + radius;
             var maxX = pnlPoints.Width - vScrollBar1.Width - radius - padding;
             var y = padding + radius - vScrollBar1.Value;
             const int yStep = padding + (2*radius);
+            var vScrollMax = (2*padding) + (todayRecords.Count()*yStep) - pnlPoints.Height;
+            vScrollBar1.Enabled = vScrollMax > 0;
+            if (vScrollBar1.Enabled)
+                vScrollBar1.Maximum = vScrollMax;
+
+            if (!todayRecords.Any()) return;
+            var minTicks = (double)todayRecords.First().When.Ticks;
+            var maxTicks = (double)todayRecords.Last().When.Ticks;
 
             var circleBrush = Brushes.DarkBlue;
             var font = new Font("Arial", 8.0F);
@@ -81,7 +81,7 @@ namespace TimeTrack
                 // this is calculated by working out where the tick is from a zero origin (ie. 40/90) along the 1...5 scale.
                 // formula: ((40/90)*4)+1
                 // or: ((T-minT)/(maxT-minT))*(maxX-minX) + minX
-                var x = (int)Math.Round((((r.When.Ticks - minTicks)/(maxTicks - minTicks))*(maxX-minX)) + minX);
+                var x = (int)Math.Round((((r.When.Ticks - minTicks)/(maxTicks - minTicks))*(maxX - minX)) + minX);
                 g.FillEllipse(circleBrush, x, y, radius, radius);
                 // Decide whether to draw the text on the LHS or RHS of the red dot
                 var textSize = TextRenderer.MeasureText(what, font);
@@ -93,10 +93,6 @@ namespace TimeTrack
                 g.DrawString(what, font, brush, textX, textY);
                 y += yStep;
             }
-
-            var vScrollMax = y + radius + padding;
-            vScrollBar1.Enabled = vScrollMax > pnlPoints.Height;
-            pnlPoints.VerticalScroll.Value = vScrollBar1.Value;
         }
 
         private void btnPrevWeek_Click(object sender, EventArgs e)
