@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -11,6 +12,7 @@ namespace TimeTrack
         public static IList<TimeRecord> TimeRecords = new List<TimeRecord>();
         public static string TimeTrackerDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "TimeTracker");
         public static string TimeRecordFileName = Path.Combine(TimeTrackerDir, "records.txt");
+        public static string TimeRecordBackupFormat = Path.Combine(TimeTrackerDir, "records.{0}.txt");
 
         /// <summary>
         /// The main entry point for the application.
@@ -37,7 +39,10 @@ namespace TimeTrack
                     while (!f.EndOfStream)
                     {
                         var m = rx.Match(f.ReadLine());
-                        TimeRecords.Add(new TimeRecord{When = DateTime.Parse(m.Groups[1].Captures[0].Value), What = m.Groups[2].Captures[0].Value});
+                        var when = DateTime.Parse(m.Groups[1].Captures[0].Value);
+                        var what = m.Groups[2].Captures[0].Value;
+                        if (!TimeRecords.Any(r => r.When == when && r.What == what))
+                            TimeRecords.Add(new TimeRecord{When = when, What = what});
                     }
                 }
             }
@@ -52,7 +57,8 @@ namespace TimeTrack
             try
             {
                 Directory.CreateDirectory(TimeTrackerDir);
-                using (var f = new StreamWriter(TimeRecordFileName, true))
+                File.Copy(TimeRecordFileName, string.Format(TimeRecordBackupFormat, DateTime.Now.ToString("yyyyMMdd.HHmmss")));
+                using (var f = new StreamWriter(TimeRecordFileName))
                 {
                     foreach (var r in TimeRecords)
                     {
