@@ -22,7 +22,7 @@ namespace TimeTrack
             }
         }
 
-        private int _scrollPosition = 0;
+        private int _scrollPosition;
 
         public TimeRecordsForm()
         {
@@ -75,15 +75,27 @@ namespace TimeTrack
             {
                 var g = bg.Graphics;
                 g.Clear(SystemColors.Control);
-                foreach (var r in todayRecords)
+                // If there's a single record just draw it at the left most position.
+                if (todayRecords.Count == 1)
+                    DrawRecord(todayRecords[0], g, MinX, y, maxX);
+                else
                 {
-                    var aboveViewport = y < 0 - RowPadding - Radius;
-                    var belowViewport = y > pnlPoints.Height + Radius + RowPadding;
-                    if (!aboveViewport && !belowViewport)
+                    foreach (var r in todayRecords)
                     {
-                        DrawRecord(r, g, minTicks, maxTicks, maxX, y);
+                        var aboveViewport = y < 0 - RowPadding - Radius;
+                        var belowViewport = y > pnlPoints.Height + Radius + RowPadding;
+                        if (!aboveViewport && !belowViewport)
+                        {
+                            // need to calculate a point between minX and maxX according to the Ticks value between minTicks and maxTicks
+                            // eg. if ticks are 10...100 and x is 1...5, a point "50" on the tick scale is at 2.778
+                            // this is calculated by working out where the tick is from a zero origin (ie. 40/90) along the 1...5 scale.
+                            // formula: ((40/90)*4)+1
+                            // or: ((T-minT)/(maxT-minT))*(maxX-minX) + minX
+                            var x = (int)Math.Round((((r.When.Ticks - minTicks) / (maxTicks - minTicks)) * (maxX - MinX)) + MinX);
+                            DrawRecord(r, g, x, y, maxX);
+                        }
+                        y += YStep;
                     }
-                    y += YStep;
                 }
                 bg.Render();
             }
@@ -97,15 +109,9 @@ namespace TimeTrack
         private static readonly Font TextFont = new Font("Arial", 8.0F);
         private static readonly Brush Brush = Brushes.Black;
 
-        private static void DrawRecord(TimeRecord r, Graphics g, double minTicks, double maxTicks, int maxX, int y)
+        private static void DrawRecord(TimeRecord r, Graphics g, int x, int y, int maxX)
         {
             var what = string.Format("{0}: {1}", r.When.ToString("HH:mm:ss"), r.What);
-            // need to calculate a point between minX and maxX according to the Ticks value between minTicks and maxTicks
-            // eg. if ticks are 10...100 and x is 1...5, a point "50" on the tick scale is at 3.222
-            // this is calculated by working out where the tick is from a zero origin (ie. 40/90) along the 1...5 scale.
-            // formula: ((40/90)*4)+1
-            // or: ((T-minT)/(maxT-minT))*(maxX-minX) + minX
-            var x = (int) Math.Round((((r.When.Ticks - minTicks)/(maxTicks - minTicks))*(maxX - MinX)) + MinX);
             g.FillEllipse(CircleBrush, x, y, Radius, Radius);
             // Decide whether to draw the text on the LHS or RHS of the red dot
             var textSize = TextRenderer.MeasureText(what, TextFont);
