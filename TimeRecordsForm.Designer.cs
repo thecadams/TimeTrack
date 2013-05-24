@@ -125,6 +125,7 @@
             this.pnlPoints.Name = "pnlPoints";
             this.pnlPoints.Size = new System.Drawing.Size(578, 318);
             this.pnlPoints.TabIndex = 1;
+            this.pnlPoints.Paint += new System.Windows.Forms.PaintEventHandler(this.pnlPoints_Paint);
             this.pnlPoints.Resize += new System.EventHandler(this.pnlPoints_Resize);
             // 
             // vScrollBar1

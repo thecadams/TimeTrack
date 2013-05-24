@@ -140,7 +140,7 @@ namespace TimeTrack
         {
             var row = Array.FindIndex(Model.TimeRecordsNewestToOldest().ToArray(),
                                       r => r.When.Date == CurrentDate.Date);
-            if (row >= 0)
+            if (row >= 0 && dataGridView1.Rows.Count > row)
                 dataGridView1.CurrentCell = dataGridView1.Rows[row].Cells[0];
         }
 
@@ -206,6 +206,11 @@ namespace TimeTrack
         }
 
         private void pnlPoints_Resize(object sender, EventArgs e)
+        {
+            DrawDay();
+        }
+
+        private void pnlPoints_Paint(object sender, PaintEventArgs e)
         {
             DrawDay();
         }
