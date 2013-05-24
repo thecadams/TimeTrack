@@ -31,7 +31,7 @@ namespace TimeTrack
 
         private void TimeRecordsForm_Shown(object sender, EventArgs e)
         {
-            var data = Program.TimeRecords.OrderByDescending(r => r.When).Select(r => new
+            var data = Model.TimeRecordsNewestToOldest().Select(r => new
                 {
                     Date = r.When.Date.ToShortDateString(),
                     Time = r.When.TimeOfDay.ToString().Substring(0, 8),
@@ -56,7 +56,7 @@ namespace TimeTrack
             UpdateGrid();
             UpdateDayControls();
 
-            var todayRecords = Program.TimeRecords.Where(r => r.When.Date == CurrentDate.Date).OrderBy(r => r.When).ToList();
+            var todayRecords = Model.TimeRecordsForDay(CurrentDate);
             var vScrollMax = (2 * RowPadding) + (todayRecords.Count() * YStep);
             vScrollBar1.Enabled = vScrollMax > pnlPoints.Height;
             if (vScrollBar1.Enabled)
@@ -129,7 +129,7 @@ namespace TimeTrack
             var dateOfCurrentButton = CurrentDate.StartOfWeek();
             foreach (var btn in new[] {btnMonday, btnTuesday, btnWednesday, btnThursday, btnFriday, btnSaturday, btnSunday})
             {
-                var countForDay = Program.TimeRecords.CountForDay(dateOfCurrentButton);
+                var countForDay = Model.TimeRecordCountForDay(dateOfCurrentButton);
                 btn.Text = string.Format(btn.Tag.ToString(), dateOfCurrentButton.ToString("dd/MM/yy"), countForDay);
                 btn.Enabled = countForDay != 0;
                 dateOfCurrentButton = dateOfCurrentButton.AddDays(1);
@@ -138,7 +138,7 @@ namespace TimeTrack
 
         private void UpdateGrid()
         {
-            var row = Array.FindIndex(Program.TimeRecords.OrderByDescending(r => r.When).ToArray(),
+            var row = Array.FindIndex(Model.TimeRecordsNewestToOldest().ToArray(),
                                       r => r.When.Date == CurrentDate.Date);
             if (row >= 0)
                 dataGridView1.CurrentCell = dataGridView1.Rows[row].Cells[0];
@@ -223,11 +223,6 @@ namespace TimeTrack
         public static DateTime DaysSinceStartOfWeek(this DateTime dt, int days)
         {
             return dt.StartOfWeek().AddDays(days);
-        }
-
-        public static int CountForDay(this IEnumerable<TimeRecord> records, DateTime dt)
-        {
-            return records.Count(r => r.When.Date == dt.Date);
         }
     }
 }

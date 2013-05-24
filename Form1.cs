@@ -53,7 +53,7 @@ namespace TimeTrack
                 textBox1.Focus();
                 return;
             }
-            Program.TimeRecords.Add(new TimeRecord{When = DateTime.Now, What = textBox1.Text});
+            Model.AddTimeRecord(new TimeRecord{When = DateTime.Now, What = textBox1.Text});
             textBox1.Text = "";
             Visible = false;
         }
