@@ -14,7 +14,9 @@ namespace TimeTrack
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Model.LoadTimeRecords();
+            Model.AddAppTimeRecord("[TimeTrack started]");
             Application.Run(new Form1());
+            Model.AddAppTimeRecord("[TimeTrack stopped]");
             Model.SaveTimeRecords();
         }
     }

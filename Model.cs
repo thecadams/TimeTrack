@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using TimeTrack;
 
 namespace TimeTrack
 {
@@ -25,7 +27,8 @@ namespace TimeTrack
             {
                 if (!File.Exists(TimeRecordFileName))
                     return;
-                var rx = new Regex("^(.*?)#(.*)$");
+                var rxLegacy = new Regex("^(.*?)#(.*)$");
+                var rx = new Regex("^(.*?)#(.*)#(.*)$");
                 using (var f = new StreamReader(TimeRecordFileName))
                 {
                     while (!f.EndOfStream)
@@ -33,11 +36,23 @@ namespace TimeTrack
                         var line = f.ReadLine();
                         if (line == null)
                             continue;
-                        var m = rx.Match(line);
-                        var when = DateTime.Parse(m.Groups[1].Captures[0].Value);
-                        var what = m.Groups[2].Captures[0].Value;
-                        if (!TimeRecords.Any(r => r.When == when && r.What == what))
-                            TimeRecords.Add(new TimeRecord { When = when, What = what });
+                        if (rx.IsMatch(line))
+                        {
+                            var m = rx.Match(line);
+                            var when = DateTime.Parse(m.Groups[1].Captures[0].Value);
+                            var kind = (TimeRecordKind)Enum.Parse(typeof(TimeRecordKind), m.Groups[2].Captures[0].Value);
+                            var what = m.Groups[3].Captures[0].Value;
+                            if (!TimeRecords.Any(r => r.When == when && r.What == what && r.Kind == kind))
+                                TimeRecords.Add(new TimeRecord { When = when, What = what, Kind = kind });
+                        }
+                        else
+                        {
+                            var m = rxLegacy.Match(line);
+                            var when = DateTime.Parse(m.Groups[1].Captures[0].Value);
+                            var what = m.Groups[2].Captures[0].Value;
+                            if (!TimeRecords.Any(r => r.When == when && r.What == what))
+                                TimeRecords.Add(new TimeRecord {When = when, What = what});
+                        }
                     }
                 }
             }
@@ -57,7 +72,7 @@ namespace TimeTrack
                 {
                     foreach (var r in TimeRecords)
                     {
-                        f.WriteLine("{0}#{1}", r.When, r.What);
+                        f.WriteLine("{0}#{1}#{2}", r.When, r.Kind, r.What);
                     }
                 }
             }
@@ -68,6 +83,16 @@ namespace TimeTrack
                                     MessageBoxButtons.YesNo) == DialogResult.Yes)
                     SaveTimeRecords();
             }
+        }
+
+        public static void AddTimeRecord(string what)
+        {
+            AddTimeRecord(new TimeRecord{When = DateTime.Now, What = what});
+        }
+
+        public static void AddAppTimeRecord(string what)
+        {
+            AddTimeRecord(new TimeRecord{When = DateTime.Now, What = what, Kind = TimeRecordKind.App});
         }
 
         public static void AddTimeRecord(TimeRecord r)
@@ -108,10 +133,17 @@ namespace TimeTrack
         }
     }
 
+    public enum TimeRecordKind
+    {
+        Normal,
+        App
+    }
+
     public class TimeRecord
     {
         public DateTime When;
         public string What;
+        public TimeRecordKind Kind;
     }
 }
 
@@ -120,5 +152,18 @@ public static class MyExtensions
     public static void Invoke(this Control control, MethodInvoker action)
     {
         control.Invoke(action);
+    }
+
+    public static Brush GetBrush(this TimeRecord record)
+    {
+        switch (record.Kind)
+        {
+            case TimeRecordKind.Normal:
+                return Brushes.DarkBlue;
+            case TimeRecordKind.App:
+                return Brushes.DarkCyan;
+            default:
+                throw new InvalidOperationException("Unknown kind " + record.Kind);
+        }
     }
 }

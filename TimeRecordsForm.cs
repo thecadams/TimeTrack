@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -105,14 +104,13 @@ namespace TimeTrack
         private const int Radius = 10;
         private const int MinX = RowPadding + Radius;
         private const int YStep = RowPadding + (2 * Radius);
-        private static readonly Brush CircleBrush = Brushes.DarkBlue;
         private static readonly Font TextFont = new Font("Arial", 8.0F);
         private static readonly Brush Brush = Brushes.Black;
 
         private static void DrawRecord(TimeRecord r, Graphics g, int x, int y, int maxX)
         {
             var what = string.Format("{0}: {1}", r.When.ToString("HH:mm:ss"), r.What);
-            g.FillEllipse(CircleBrush, x, y, Radius, Radius);
+            g.FillEllipse(r.GetBrush(), x, y, Radius, Radius);
             // Decide whether to draw the text on the LHS or RHS of the red dot
             var textSize = TextRenderer.MeasureText(what, TextFont);
             var lhsTextX = x - Radius - textSize.Width;
