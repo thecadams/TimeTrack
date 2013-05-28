@@ -22,13 +22,11 @@ namespace TimeTrack
 
         private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            ResetTimer();
             Show();
         }
 
         private void toolStripMenuItem1_Click(object sender, EventArgs e)
         {
-            ResetTimer();
             Show();
         }
 
@@ -56,6 +54,7 @@ namespace TimeTrack
             Model.AddTimeRecord(new TimeRecord{When = DateTime.Now, What = textBox1.Text});
             textBox1.Text = "";
             Visible = false;
+            ResetTimer();
         }
 
         private void historyToolStripMenuItem_Click(object sender, EventArgs e)
