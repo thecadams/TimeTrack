@@ -7,10 +7,23 @@ namespace TimeTrack
     public partial class Form1 : Form
     {
         private Timer _timer;
+        private readonly KeyboardHook _hook = new KeyboardHook();
         public Form1()
         {
             InitializeComponent();
             StartTimer();
+            RegisterHotKey();
+        }
+
+        private void RegisterHotKey()
+        {
+            _hook.KeyPressed += HookOnKeyPressed;
+            _hook.RegisterHotKey(KeyModifier.Win, Keys.Z);
+        }
+
+        private void HookOnKeyPressed(object sender, KeyPressedEventArgs keyPressedEventArgs)
+        {
+            Show();
         }
 
         private void StartTimer()
