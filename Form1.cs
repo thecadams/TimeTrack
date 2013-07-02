@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
+using Timer = System.Windows.Forms.Timer;
 
 namespace TimeTrack
 {
@@ -115,6 +117,30 @@ namespace TimeTrack
         private void Form1_Activated(object sender, EventArgs e)
         {
             textBox1.Focus();
+            FlashEvery(10000);
         }
+
+        private void FlashEvery(int milliseconds)
+        {
+            ThreadPool.QueueUserWorkItem(state =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(milliseconds);
+                    if (!Visible) return;
+                    Invoke(new MethodInvoker(FlashWindow));
+                }
+            });
+        }
+
+        #region FlashWindow
+        [DllImport("user32.dll")]
+        private static extern bool FlashWindow(IntPtr hwnd, bool bInvert);
+
+        private void FlashWindow()
+        {
+            FlashWindow(Handle, true);
+        }
+        #endregion
     }
 }

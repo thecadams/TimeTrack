@@ -130,6 +130,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "TimeTracker";
+            this.TopMost = true;
             this.Activated += new System.EventHandler(this.Form1_Activated);
             this.Shown += new System.EventHandler(this.Form1_Shown);
             this.contextMenuStrip1.ResumeLayout(false);
