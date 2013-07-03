@@ -128,7 +128,11 @@ namespace TimeTrack
                 {
                     Thread.Sleep(milliseconds);
                     if (!Visible) return;
-                    Invoke(new MethodInvoker(FlashWindow));
+                    Invoke(new MethodInvoker(() =>
+                        {
+                            if (!textBox1.Focused && !button1.Focused)
+                                FlashWindow();
+                        }));
                 }
             });
         }
