@@ -67,7 +67,6 @@ namespace TimeTrack
                 return;
             }
             Model.AddTimeRecord(new TimeRecord{When = DateTime.Now, What = textBox1.Text});
-            textBox1.Text = "";
             Visible = false;
             ResetTimer();
         }
@@ -117,6 +116,7 @@ namespace TimeTrack
         private void Form1_Activated(object sender, EventArgs e)
         {
             textBox1.Focus();
+            textBox1.SelectAll();
             FlashEvery(10000);
         }
 
